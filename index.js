@@ -3,11 +3,25 @@ const app = express();
 require("dotenv").config();
 const PORT = process.env.PORT;
 const mongoose = require("mongoose");
+const cors = require("cors");
+const session = require("express-session");
+const userController = require("./controllers/users");
+const sessionController = require("./controllers/sessions");
 
 //Connect MongoDB
 mongoose.connect(process.env.DATABASE_URL);
 
 //MIDDLEWARE 
+app.use(cors()); //prevent cors errors, open acces to all origins
+app.use(express.json()); //parse json bodies
+app.use(session({
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: false,
+}));
+
+app.use("/user", userController)
+app.use("/signin", sessionController)
 
 //ROUTE
 app.get("/", (req, res) => {

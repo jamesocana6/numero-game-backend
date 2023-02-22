@@ -1,6 +1,7 @@
 let mongoose = require("mongoose")
 
 const userSchema = mongoose.Schema({
+    email: { type: String, unique: true, required: true },
     username: { type: String, unique: true, required: true },
     password: { type: String, required: true },
     highscores: {
@@ -15,7 +16,7 @@ const userSchema = mongoose.Schema({
         hs60h120: Number,
     },
     theme: { type: String },
-    
+
 });
 
 const User = mongoose.model("User", userSchema);
