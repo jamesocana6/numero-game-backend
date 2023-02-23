@@ -5,7 +5,14 @@ const bcrypt = require("bcrypt");
 
 //Index
 userRouter.get("/", (req, res) => {
-    res.json({"hello": "wussup"})
+    User.findById(req.session.currentUser._id, (err, foundUser) => {
+        //If no user is found with that username
+        if (foundUser) {
+            res.json(foundUser)
+        } else {
+            res.send("Nope :(")
+        }
+    })
 })
 
 
@@ -20,17 +27,15 @@ userRouter.delete("/:id", (req, res) => {
 })
 
 //Update
-//Edit new user
+//Update highscore
 userRouter.put("/", (req, res) => {
-    console.log(req.session)
     User.findById(req.session.currentUser._id, (err, foundUser) => {
         //If no user is found with that username
         if (foundUser) {
-            console.log(foundUser.highscores[req.body.gameSetting])
             foundUser.highscores[req.body.gameSetting] = req.body.value
             foundUser.save()
         } else {
-            res.send("NO!")
+            res.send("Nope :(")
         }
     })
 })
