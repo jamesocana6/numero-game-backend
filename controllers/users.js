@@ -33,12 +33,38 @@ userRouter.put("/", (req, res) => {
         //If no user is found with that username
         if (foundUser) {
             foundUser.highscores[req.body.gameSetting] = req.body.value
-            foundUser.save()
+            req.session.currentUser = foundUser
+            foundUser.save(err => {res.json(foundUser)})
         } else {
             res.send("Nope :(")
         }
     })
 })
+
+userRouter.put("/clearhighscores", (req, res) => {
+    User.findById(req.session.currentUser._id, (err, foundUser) => {
+        //If no user is found with that username
+        if (foundUser) {
+            foundUser.highscores = { 
+                hs24e30: 0, 
+                hs24m60: 0, 
+                hs24h120: 0, 
+                hs48e30: 0, 
+                hs48m60: 0, 
+                hs48h120: 0, 
+                hs60e30: 0, 
+                hs60m60: 0, 
+                hs60h120: 0, 
+            }
+            req.session.currentUser = foundUser
+            foundUser.save(er => res.json(foundUser))
+        } else {
+            res.send("Nope :(")
+        }
+    })
+})
+
+
 
 //Create
 //Create new user
