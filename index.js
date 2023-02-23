@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const session = require("express-session");
 const userController = require("./controllers/users");
+const highscoreController = require("./controllers/highscores");
 const sessionController = require("./controllers/sessions");
 
 //Connect MongoDB
@@ -21,6 +22,7 @@ app.use(session({
 }));
 
 app.use("/user", userController)
+app.use("/highscore", highscoreController)
 app.use("/signin", sessionController)
 
 //ROUTE

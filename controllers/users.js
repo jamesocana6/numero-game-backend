@@ -1,5 +1,5 @@
 const express = require("express")
-const User = require("../models/User")
+const User = require("../models/user")
 const userRouter = express.Router()
 const bcrypt = require("bcrypt");
 
@@ -13,9 +13,27 @@ userRouter.get("/", (req, res) => {
 
 //Delete
 //Delete user
+userRouter.delete("/:id", (req, res) => {
+    // current user id
+    User.findByIdAndDelete(req.params.id);
+    
+})
 
 //Update
 //Edit new user
+userRouter.put("/", (req, res) => {
+    console.log(req.session)
+    User.findById(req.session.currentUser._id, (err, foundUser) => {
+        //If no user is found with that username
+        if (foundUser) {
+            console.log(foundUser.highscores[req.body.gameSetting])
+            foundUser.highscores[req.body.gameSetting] = req.body.value
+            foundUser.save()
+        } else {
+            res.send("NO!")
+        }
+    })
+})
 
 //Create
 //Create new user
