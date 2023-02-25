@@ -5,40 +5,50 @@ const bcrypt = require("bcrypt");
 
 //Index
 userRouter.get("/", (req, res) => {
-    User.findById(req.session.currentUser._id, (err, foundUser) => {
-        //If no user is found with that username
-        if (foundUser) {
-            res.json(foundUser)
-        } else {
-            res.send("Nope :(")
-        }
-    })
+    console.log(req.headers)
+    console.log(req.sessionID)
+    console.log(req.sessionStore)
+    if (req.session.currentUser) {
+        User.findById(req.session.currentUser._id, (err, foundUser) => {
+            //If no user is found with that username
+            if (foundUser) {
+                res.json(foundUser)
+            } else {
+                res.status(418)
+            }
+        })
+    } else {
+        res.status(418)
+    }
 })
 
 
 //New
 
 //Delete
-//Delete user
-userRouter.delete("/:id", (req, res) => {
-    // current user id
-    User.findByIdAndDelete(req.params.id);
-    
-})
 
 //Update
 //Update highscore
 userRouter.put("/", (req, res) => {
-    User.findById(req.session.currentUser._id, (err, foundUser) => {
-        //If no user is found with that username
-        if (foundUser) {
-            foundUser.highscores[req.body.gameSetting] = req.body.value
-            req.session.currentUser = foundUser
-            foundUser.save(err => {res.json(foundUser)})
-        } else {
-            res.send("Nope :(")
-        }
-    })
+    console.log(req.body)
+    console.log(req.session)
+    if (req.session.currentUser) {
+        User.findById(req.session.currentUser._id, (err, foundUser) => {
+            //If no user is found with that username
+            if (foundUser) {
+                console.log(foundUser, "FOUND")
+                foundUser.highscores[req.body.gameSetting] = req.body.value
+                req.session.currentUser = foundUser
+                console.log(req.session.currentUser)
+                foundUser.save(err => {res.json(foundUser)})
+            } else {
+                console.log("NOT FOUND")
+                res.status(418)
+            }
+        })
+    } else {
+        res.status(418)
+    }
 })
 
 userRouter.put("/clearhighscores", (req, res) => {
@@ -59,7 +69,7 @@ userRouter.put("/clearhighscores", (req, res) => {
             req.session.currentUser = foundUser
             foundUser.save(er => res.json(foundUser))
         } else {
-            res.send("Nope :(")
+            res.status(418)
         }
     })
 })
@@ -69,17 +79,23 @@ userRouter.put("/clearhighscores", (req, res) => {
 //Create
 //Create new user
 userRouter.post("/", (req, res) => {
-    User.findOne({
-        username: req.body.username
+    User.findOne({ 
+        $or: [{username: req.body.username.toLowerCase()}, {email: req.body.email.toLowerCase()}]
     }, (err, foundUser) => {
         //If no user is found with that username
         if (!foundUser) {
             //overwrite the user password with hashed password, then pass that in to our database
             req.body.password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
-            res.json(User.create(req.body));
-        } else if (foundUser.username === req.body.username) {
-            res.status(418).json({"error": "message"});
-        };
+            res.json(User.create({
+                email: req.body.email.toLowerCase(),
+                username: req.body.username.toLowerCase(),
+                password: req.body.password
+            }));
+        } else if (foundUser.username.toLowerCase() === req.body.username.toLowerCase()) {
+            res.status(418).json({"error": "Username in use!"});
+        } else if (foundUser.email.toLowerCase() === req.body.email.toLowerCase()) {
+            res.status(418).json({"error": "Email in use!"});
+        } ;
     })
 })
 

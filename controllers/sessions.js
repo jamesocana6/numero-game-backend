@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt");
 //D
 //logout
 sessionRouter.delete('/', (req, res) => {
+    console.log("signout",req.session.currentUser)
     req.session.destroy((err) => {
         res.json({"message": "logout"});
     });
@@ -17,25 +18,32 @@ sessionRouter.delete('/', (req, res) => {
 //login 
 sessionRouter.post("/", (req, res) => {
     //Check for an existing user 
+    console.log("GOING TO SGN YOU IN")
     User.findOne({
-        username: req.body.username
+        $or: [{username: req.body.username.toLowerCase()}, {email: req.body.username.toLowerCase()}]
     }, (err, foundUser) => {
         //send error if no user registered
         if (!foundUser) {
-            res.status(418).json({"error": "No user with that username is registered."});
+            console.log("NO FOUND")
+            res.status(418)
         } else {
+            console.log("FOUND YOU", foundUser)
             //if the user is found, compare the given password with the hashed password
             const passwordMatches = bcrypt.compareSync(req.body.password, foundUser.password);
             if (passwordMatches) {
+                console.log("Passwords match")
                 //add the user to the session
                 req.session.currentUser = foundUser;
+                console.log(req.session)
+                console.log(req.sessionID)
                 res.json(req.session.currentUser)
             } else {
                 //if the passwords don't match
-                res.status(418).json({"error": "Invalid credentials."});
+                res.status(418)
             };
         };
     });
+    
 });
 
 

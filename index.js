@@ -13,7 +13,7 @@ const sessionController = require("./controllers/sessions");
 mongoose.connect(process.env.DATABASE_URL);
 
 //MIDDLEWARE 
-app.use(cors()); //prevent cors errors, open acces to all origins
+app.use(cors({ credentials: true, origin: true })); //prevent cors errors, open acces to all origins
 app.use(express.json()); //parse json bodies
 app.use(session({
     secret: process.env.SECRET,
