@@ -2,24 +2,18 @@ const express = require("express")
 const User = require("../models/user")
 const userRouter = express.Router()
 const bcrypt = require("bcrypt");
+const auth = require("../middleware/auth")
 
 //Index
-userRouter.get("/", (req, res) => {
-    console.log(req.headers)
-    console.log(req.sessionID)
-    console.log(req.sessionStore)
-    if (req.session.currentUser) {
-        User.findById(req.session.currentUser._id, (err, foundUser) => {
-            //If no user is found with that username
-            if (foundUser) {
-                res.json(foundUser)
-            } else {
-                res.status(418)
-            }
-        })
-    } else {
-        res.status(418)
-    }
+userRouter.get("/", auth, (req, res) => {
+    User.findById(req.body._id, (err, foundUser) => {
+        //If no user is found with that username
+        if (foundUser) {
+            res.json(foundUser)
+        } else {
+            res.status(418)
+        }
+    })
 })
 
 
@@ -29,30 +23,21 @@ userRouter.get("/", (req, res) => {
 
 //Update
 //Update highscore
-userRouter.put("/", (req, res) => {
-    console.log(req.body)
-    console.log(req.session)
-    if (req.session.currentUser) {
-        User.findById(req.session.currentUser._id, (err, foundUser) => {
-            //If no user is found with that username
-            if (foundUser) {
-                console.log(foundUser, "FOUND")
-                foundUser.highscores[req.body.gameSetting] = req.body.value
-                req.session.currentUser = foundUser
-                console.log(req.session.currentUser)
-                foundUser.save(err => {res.json(foundUser)})
-            } else {
-                console.log("NOT FOUND")
-                res.status(418)
-            }
-        })
-    } else {
-        res.status(418)
-    }
+userRouter.put("/", auth,(req, res) => {
+    User.findById(req.body._id, (err, foundUser) => {
+
+        //If no user is found with that username
+        if (foundUser) {
+            foundUser.highscores[req.body.gameSetting] = req.body.value
+            foundUser.save(err => {res.json(foundUser)})
+        } else {
+            res.status(418)
+        }
+    })
 })
 
 userRouter.put("/clearhighscores", (req, res) => {
-    User.findById(req.session.currentUser._id, (err, foundUser) => {
+    User.findById(req.body._id, (err, foundUser) => {
         //If no user is found with that username
         if (foundUser) {
             foundUser.highscores = { 
@@ -66,7 +51,6 @@ userRouter.put("/clearhighscores", (req, res) => {
                 hs60m60: 0, 
                 hs60h120: 0, 
             }
-            req.session.currentUser = foundUser
             foundUser.save(er => res.json(foundUser))
         } else {
             res.status(418)
@@ -86,11 +70,14 @@ userRouter.post("/", (req, res) => {
         if (!foundUser) {
             //overwrite the user password with hashed password, then pass that in to our database
             req.body.password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
-            res.json(User.create({
+            User.create({
                 email: req.body.email.toLowerCase(),
                 username: req.body.username.toLowerCase(),
                 password: req.body.password
-            }));
+            }, (err, createdUser) => { 
+                console.log(createdUser)
+                res.send(createdUser)
+            });
         } else if (foundUser.username.toLowerCase() === req.body.username.toLowerCase()) {
             res.status(418).json({"error": "Username in use!"});
         } else if (foundUser.email.toLowerCase() === req.body.email.toLowerCase()) {

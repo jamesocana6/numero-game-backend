@@ -2,6 +2,7 @@ const express = require("express")
 const User = require("../models/user")
 const Highscore = require("../models/Highscore")
 const highscoreRouter = express.Router()
+const auth = require("../middleware/auth")
 
 //Index
 //Show top 25 highscores
@@ -20,26 +21,21 @@ highscoreRouter.get("/", async (req, res) => {
 
 //Create
 //New highscore (first time)
-highscoreRouter.post("/", (req, res) => {
-    if (req.session.currentUser) {
-        console.log(req.session.currentUser)
-        Highscore.findOne({username: req.session.currentUser.username, gameSetting: req.body.gameSetting}, (err, found) => {
-            if (found) {
-                found.value = req.session.currentUser.highscores[req.body.gameSetting]
-                found.save(err => {res.json(found)})
-            } else {
-                Highscore.create(
-                    {
-                        username: req.session.currentUser.username, 
-                        gameSetting: req.body.gameSetting,
-                        value: req.session.currentUser.highscores[req.body.gameSetting]
-                    })
-                Highscore.collection.dropIndexes()
-            }
-        })
-    } else {
-        res.status(418)
-    }
+highscoreRouter.post("/", auth, (req, res) => {
+    Highscore.findOne({username: req.body.username, gameSetting: req.body.gameSetting}, (err, found) => {
+        if (found) {
+            found.value = req.body.highscores[req.body.gameSetting]
+            found.save(err => {res.json(found)})
+        } else {
+            Highscore.create(
+                {
+                    username: req.body.username, 
+                    gameSetting: req.body.gameSetting,
+                    value: req.body.highscores[req.body.gameSetting]
+                })
+            Highscore.collection.dropIndexes()
+        }
+    })
 })
 
 //Edit

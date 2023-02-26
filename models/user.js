@@ -2,9 +2,9 @@ let mongoose = require("mongoose")
 
 const userSchema = mongoose.Schema({
     email: { type: String, unique: true, required: true },
-    valid: { type: Boolean, default: false },
     username: { type: String, unique: true, required: true },
     password: { type: String, required: true },
+    token: { type: String, },
     highscores: { 
         hs24e30: { type: Number, default: 0 }, 
         hs24m60: { type: Number, default: 0 }, 
