@@ -6,13 +6,35 @@ const auth = require("../middleware/auth")
 
 //Index
 //Show top 25 highscores
-highscoreRouter.post("/", auth, async (req, res) => {
-    let scores = await Highscore.find({gameSetting: req.body.gameSetting}).sort({value:-1}).limit(25).exec()
-    console.log(scores)
-    res.json(scores)
-})
+// highscoreRouter.post("/", auth, async (req, res) => {
+//     // username: { type: String, required: true, },
+//     // gameDifficulty: { type: String, required: true, },
+//     // gameTarget: { type: Number, required: true, },
+//     // gameTime: { type: Number, required: true, },
+//     // value: { type: Number, required: true, },
+
+//     let scores = await Highscore.find({gameSetting: req.body.gameSetting}).sort({value:-1}).limit(25).exec()
+//     console.log(scores)
+//     res.json(scores)
+// })
 highscoreRouter.post("/allmodes", async (req, res) => {
-    let scores = await Highscore.find({gameSetting: {$regex : req.body.gameSetting} }).sort({value:-1}).limit(25).exec()
+    let scores = await Highscore.aggregate([
+        {
+            $match: {         
+                gameDifficulty: req.body.gameDifficulty, 
+            }, 
+        }, 
+        // {
+        //     $group: {
+        //         _id: {
+        //             gameTarget: "", 
+        //         }
+        //     },
+        // },
+        // {
+        //     $sort: { value:-1 }
+        // }
+    ]).limit(25)
     console.log(scores)
     res.json(scores)
 })
@@ -27,24 +49,37 @@ highscoreRouter.post("/allmodes", async (req, res) => {
 
 //Create
 //New highscore (first time)
-// FIX POST HS. FIND IF THEY POSTED A HS. IF POSTED, UPDATE THE OLD ONE ELSE CREATE NEW HS.
-// SEARCH BY USERNAME, TARGET, TIME, and DIFFICULTY. 
-// req.body is username, token, difficulty, time, and target, maybe user._id as well.
-highscoreRouter.post("/", auth, (req, res) => {
-    Highscore.findOne({username: req.body.username, gameSetting: req.body.gameSetting}, (err, found) => {
-        if (found) {
-            found.value = req.body.highscores[req.body.gameSetting]
-            found.save(err => {res.json(found)})
-        } else {
-            Highscore.create(
-                {
-                    username: req.body.username, 
-                    gameSetting: req.body.gameSetting,
-                    value: req.body.highscores[req.body.gameSetting]
-                })
-            Highscore.collection.dropIndexes()
-        }
+highscoreRouter.post("/", auth, async (req, res) => {
+    let user = await User.findById(req.body._id)
+    let hs = await Highscore.findOne({
+        username: req.body.username, 
+        gameDifficulty: req.body.gameDifficulty, 
+        gameTime: req.body.gameTime, 
+        gameTarget: req.body.gameTarget, 
     })
+    if (hs) {
+        if (hs.value < user.highscores[`hs${req.body.gameTarget+req.body.gameDifficulty+req.body.gameTime}`]) {
+            hs.value = user.highscores[`hs${req.body.gameTarget+req.body.gameDifficulty+req.body.gameTime}`]
+            hs.save()
+            res.json("High score updated!")
+        } else {
+            res.json("High score already posted!")
+        }
+    } else {
+        Highscore.create({
+            username: req.body.username, 
+            gameDifficulty: req.body.gameDifficulty, 
+            gameTime: req.body.gameTime, 
+            gameTarget: req.body.gameTarget, 
+            value: user.highscores[`hs${req.body.gameTarget+req.body.gameDifficulty+req.body.gameTime}`],
+        }, (err, createdHS) => {
+            if (err) {
+                res.json("Something went wrong")
+            } else {
+                res.json("High score posted!")
+            }
+        })
+    }
 })
 
 //Edit

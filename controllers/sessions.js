@@ -31,6 +31,7 @@ sessionRouter.post("/", (req, res) => {
                 // save user token
                 foundUser.token = token;
                 let tempUser = foundUser
+                foundUser.save()
                 res.json({
                     _id: tempUser._id,
                     email: tempUser.email,
@@ -64,6 +65,7 @@ sessionRouter.post("/refresh", auth, (req, res) => {
         // save user token
         foundUser.token = token;
         let tempUser = foundUser
+        foundUser.save()
         res.json({
             _id: tempUser._id,
             email: tempUser.email,
@@ -74,6 +76,7 @@ sessionRouter.post("/refresh", auth, (req, res) => {
             token: tempUser.token,
             highscores: tempUser.highscores,
         })
+
     });
 
 });
