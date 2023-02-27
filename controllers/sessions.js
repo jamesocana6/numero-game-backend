@@ -7,9 +7,6 @@ const auth = require("../middleware/auth")
 
 //ROUTES
 
-//D
-//logout
-
 //C
 //login 
 sessionRouter.post("/", (req, res) => {
@@ -19,7 +16,7 @@ sessionRouter.post("/", (req, res) => {
     }, (err, foundUser) => {
         //send error if no user registered
         if (!foundUser) {
-            res.status(418)
+            res.json("Invalid username or email")
         } else {
             //if the user is found, compare the given password with the hashed password
             const passwordMatches = bcrypt.compareSync(req.body.password, foundUser.password);
@@ -33,10 +30,20 @@ sessionRouter.post("/", (req, res) => {
                 );
                 // save user token
                 foundUser.token = token;
-                res.json(foundUser)
+                let tempUser = foundUser
+                res.json({
+                    _id: tempUser._id,
+                    email: tempUser.email,
+                    username: tempUser.username,
+                    tkni: Date.now(),
+                    tknr: Date.now()+(1000*60*60*24*6),
+                    tkne: Date.now()+(1000*60*60*24*7),
+                    token: tempUser.token,
+                    highscores: tempUser.highscores,
+                })
             } else {
                 //if the passwords don't match
-                res.status(418)
+                res.json("Incorrect password")
             };
         };
     });
@@ -56,7 +63,17 @@ sessionRouter.post("/refresh", auth, (req, res) => {
         );
         // save user token
         foundUser.token = token;
-        res.json(foundUser)
+        let tempUser = foundUser
+        res.json({
+            _id: tempUser._id,
+            email: tempUser.email,
+            username: tempUser.username,
+            tkni: Date.now(),
+            tknr: Date.now()+(1000*60*60*24*6),
+            tkne: Date.now()+(1000*60*60*24*7),
+            token: tempUser.token,
+            highscores: tempUser.highscores,
+        })
     });
 
 });
