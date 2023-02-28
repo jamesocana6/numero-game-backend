@@ -17,27 +17,34 @@ const auth = require("../middleware/auth")
 //     console.log(scores)
 //     res.json(scores)
 // })
-highscoreRouter.post("/allmodes", async (req, res) => {
-    let scores = await Highscore.aggregate([
+highscoreRouter.post("/allmodes", (req, res) => {
+    Highscore.aggregate([
         {
-            $match: {         
-                gameDifficulty: req.body.gameDifficulty, 
-            }, 
-        }, 
-        // {
-        //     $group: {
-        //         _id: {
-        //             gameTarget: "", 
-        //         }
-        //     },
-        // },
-        // {
-        //     $sort: { value:-1 }
-        // }
-    ]).limit(25)
-    console.log(scores)
-    res.json(scores)
-})
+            $match: {
+                gameDifficulty: req.body.gameDifficulty // Replace "easy" with the difficulty you want to filter by
+            }
+        },
+        {
+            $sort: {
+                value: -1
+            }
+        },
+        {
+            $group: {
+                _id: "$gameTarget",
+                usernames: { $push: "$username" },
+                values: { $push: "$value" }
+            }
+        },
+    ]).sort({_id: 1}).exec((err, result) => {
+        if (err) {
+            res.json("Something went wrong")
+            return;
+        }
+        console.log(result);
+        res.json(result);
+    })
+});
 
 //New
 
@@ -52,14 +59,14 @@ highscoreRouter.post("/allmodes", async (req, res) => {
 highscoreRouter.post("/", auth, async (req, res) => {
     let user = await User.findById(req.body._id)
     let hs = await Highscore.findOne({
-        username: req.body.username, 
-        gameDifficulty: req.body.gameDifficulty, 
-        gameTime: req.body.gameTime, 
-        gameTarget: req.body.gameTarget, 
+        username: req.body.username,
+        gameDifficulty: req.body.gameDifficulty,
+        gameTime: req.body.gameTime,
+        gameTarget: req.body.gameTarget,
     })
     if (hs) {
-        if (hs.value < user.highscores[`hs${req.body.gameTarget+req.body.gameDifficulty+req.body.gameTime}`]) {
-            hs.value = user.highscores[`hs${req.body.gameTarget+req.body.gameDifficulty+req.body.gameTime}`]
+        if (hs.value < user.highscores[`hs${req.body.gameTarget + req.body.gameDifficulty + req.body.gameTime}`]) {
+            hs.value = user.highscores[`hs${req.body.gameTarget + req.body.gameDifficulty + req.body.gameTime}`]
             hs.save()
             res.json("High score updated!")
         } else {
@@ -67,11 +74,11 @@ highscoreRouter.post("/", auth, async (req, res) => {
         }
     } else {
         Highscore.create({
-            username: req.body.username, 
-            gameDifficulty: req.body.gameDifficulty, 
-            gameTime: req.body.gameTime, 
-            gameTarget: req.body.gameTarget, 
-            value: user.highscores[`hs${req.body.gameTarget+req.body.gameDifficulty+req.body.gameTime}`],
+            username: req.body.username,
+            gameDifficulty: req.body.gameDifficulty,
+            gameTime: req.body.gameTime,
+            gameTarget: req.body.gameTarget,
+            value: user.highscores[`hs${req.body.gameTarget + req.body.gameDifficulty + req.body.gameTime}`],
         }, (err, createdHS) => {
             if (err) {
                 res.json("Something went wrong")
