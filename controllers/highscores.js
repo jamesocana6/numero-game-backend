@@ -41,7 +41,7 @@ highscoreRouter.post("/allmodes", (req, res) => {
             res.json("Something went wrong")
             return;
         }
-        console.log(result);
+        // console.log(result);
         res.json(result);
     })
 });
