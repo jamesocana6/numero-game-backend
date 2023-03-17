@@ -5,7 +5,7 @@ const PORT = process.env.PORT;
 const mongoose = require("mongoose");
 const cors = require("cors");
 const session = require("express-session");
-const userController = require("./controllers/users.js");
+const userController = require("./controllers/users");
 const highscoreController = require("./controllers/highscores.js");
 const sessionController = require("./controllers/sessions.js");
 
