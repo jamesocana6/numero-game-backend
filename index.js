@@ -27,7 +27,7 @@ app.use("/signin", sessionController)
 
 //ROUTE
 app.get("/", (req, res) => {
-    res.send("HELLO");
+    res.send("HELLO WORLD");
 });
 
 //database connection error / success
