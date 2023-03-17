@@ -1,5 +1,5 @@
 const express = require("express")
-const User = require("../models/user")
+const User = require("../models/User")
 const Highscore = require("../models/Highscore")
 const highscoreRouter = express.Router()
 const auth = require("../middleware/auth")
