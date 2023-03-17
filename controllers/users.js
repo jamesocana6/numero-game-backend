@@ -1,8 +1,8 @@
 const express = require("express")
-const User = require("../models/User")
+const User = require("../models/User.js")
 const userRouter = express.Router()
 const bcrypt = require("bcrypt");
-const auth = require("../middleware/auth")
+const auth = require("../middleware/auth.js")
 
 //Update
 //Update highscore

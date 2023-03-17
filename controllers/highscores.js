@@ -1,8 +1,8 @@
 const express = require("express")
-const User = require("../models/User")
-const Highscore = require("../models/Highscore")
+const User = require("../models/User.js")
+const Highscore = require("../models/Highscore.js")
 const highscoreRouter = express.Router()
-const auth = require("../middleware/auth")
+const auth = require("../middleware/auth.js")
 
 //Index
 //Show top 25 highscores
