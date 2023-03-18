@@ -6,8 +6,6 @@ env_variables:
   SECRET: "dH3u39AO$s>f%yo"
   TOKEN_KEY: "?=G$|nK$/y:gWar"
 
-handlers:
-  - url: /.*
-    script: auto
-    http_headers:
-      Access-Control-Allow-Origin: *
+handlers: 
+- url: /.*
+  script: auto
