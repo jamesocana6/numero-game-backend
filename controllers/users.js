@@ -3,6 +3,8 @@ const User = require("../models/User.js")
 const userRouter = express.Router()
 const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth.js")
+const Filter = require("bad-words");
+const filter = new Filter;
 
 //Update
 //Update highscore
@@ -24,10 +26,13 @@ userRouter.put("/", auth,(req, res) => {
 //Create
 //Create new user
 userRouter.post("/", (req, res) => {
+    let filteredName = req.body.username.replace(/\s/g,"")
     if (!req.body.email.includes("@") || !req.body.email.includes(".com")) {
         res.json("Email must include @ and .com")
     } else if (req.body.username.length > 20) {
         res.json("Username must be less than 20 characters")
+    } else if (filter.isProfane(filteredName)) {
+        res.json("Please choose a different username")
     } else if (req.body.password.length < 8) {
         res.json("Password must be at least 8 characters long")
     } else {    
