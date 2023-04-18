@@ -16,7 +16,7 @@ const userSchema = mongoose.Schema({
         hs60m60: { type: Number, default: 0 }, 
         hs60h120: { type: Number, default: 0 }, 
     },
-    theme: { type: String },
+    // postedScore: [{type: mongoose.Schema.Types.ObjectId, ref: "Highscore"}],
 });
 
 const User = mongoose.model("User", userSchema);

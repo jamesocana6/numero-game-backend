@@ -4,6 +4,7 @@ const userRouter = express.Router()
 const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth.js")
 const Filter = require("bad-words");
+const Highscore = require("../models/Highscore.js");
 const filter = new Filter;
 
 //Update
@@ -20,6 +21,15 @@ userRouter.put("/", auth,(req, res) => {
             res.json("Something went wrong")
 
         }
+    })
+})
+
+//Delete
+//Delete user
+userRouter.delete("/", auth,(req, res) => {
+    User.findByIdAndDelete(req.body._id, (err, deletedUser) => {
+        Highscore.deleteMany({username: req.body.username}, (err, deletedScores) => {})
+        res.json("Deleted User")
     })
 })
 
