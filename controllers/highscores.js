@@ -57,16 +57,16 @@ highscoreRouter.post("/allmodes", (req, res) => {
 //Create
 //New highscore (first time)
 highscoreRouter.post("/", auth, async (req, res) => {
-    let user = await User.findById(req.body._id)
+    const { _id, username, gameDifficulty, gameTime } = req.body
+    let user = await User.findById(_id)
     let hs = await Highscore.findOne({
-        username: req.body.username,
-        gameDifficulty: req.body.gameDifficulty,
-        gameTime: req.body.gameTime,
-        gameTarget: req.body.gameTarget,
+        username: username,
+        gameDifficulty: gameDifficulty,
+        gameTime: gameTime,
     })
     if (hs) {
-        if (hs.value < user.highscores[`hs${req.body.gameTarget + req.body.gameDifficulty + req.body.gameTime}`]) {
-            hs.value = user.highscores[`hs${req.body.gameTarget + req.body.gameDifficulty + req.body.gameTime}`]
+        if (hs.value < user.highscores[`hs${gameDifficulty + gameTime}`]) {
+            hs.value = user.highscores[`hs${gameDifficulty + gameTime}`]
             hs.save()
             res.json("High score updated!")
         } else {
@@ -74,11 +74,10 @@ highscoreRouter.post("/", auth, async (req, res) => {
         }
     } else {
         Highscore.create({
-            username: req.body.username,
-            gameDifficulty: req.body.gameDifficulty,
-            gameTime: req.body.gameTime,
-            gameTarget: req.body.gameTarget,
-            value: user.highscores[`hs${req.body.gameTarget + req.body.gameDifficulty + req.body.gameTime}`],
+            username: username,
+            gameDifficulty: gameDifficulty,
+            gameTime: gameTime,
+            value: user.highscores[`hs${gameDifficulty + gameTime}`],
         }, (err, createdHS) => {
             if (err) {
                 res.json("Something went wrong")
