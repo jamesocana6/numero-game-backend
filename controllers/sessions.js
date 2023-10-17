@@ -31,6 +31,13 @@ sessionRouter.post("/", (req, res) => {
                 // save user token
                 foundUser.token = token;
                 let tempUser = foundUser
+                if ("hs24e30" in tempUser.highscores) {
+                    tempUser.highscores = {
+                        hse30: 0,
+                        hsm60: 0,
+                        hsh120: 0,
+                    }
+                }
                 foundUser.save()
                 res.json({
                     _id: tempUser._id,
