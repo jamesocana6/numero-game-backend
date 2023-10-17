@@ -31,7 +31,7 @@ highscoreRouter.post("/allmodes", (req, res) => {
         },
         {
             $group: {
-                _id: "$gameTarget",
+                _id: "$gameDifficulty",
                 usernames: { $push: "$username" },
                 values: { $push: "$value" }
             }
