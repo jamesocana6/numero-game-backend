@@ -17,33 +17,27 @@ const auth = require("../middleware/auth.js")
 //     console.log(scores)
 //     res.json(scores)
 // })
-highscoreRouter.post("/allmodes", (req, res) => {
-    Highscore.aggregate([
-        {
-            $match: {
-                gameDifficulty: req.body.gameDifficulty // Replace "easy" with the difficulty you want to filter by
-            }
-        },
-        {
-            $sort: {
-                value: -1
-            }
-        },
-        {
-            $group: {
-                _id: "$gameDifficulty",
-                usernames: { $push: "$username" },
-                values: { $push: "$value" }
-            }
-        },
-    ]).sort({_id: 1}).exec((err, result) => {
+
+highscoreRouter.get("/allmodes", (req, res) => {
+    Highscore.find({}, (err, highScores) => {
         if (err) {
-            res.json("Something went wrong")
+            console.error(err);
             return;
         }
-        // console.log(result);
-        res.json(result);
-    })
+        // Separate high scores by gameDifficulty
+        const separatedScores = {};
+        highScores.forEach(score => {
+            if (!separatedScores[score.gameDifficulty]) {
+                separatedScores[score.gameDifficulty] = [];
+            }
+            separatedScores[score.gameDifficulty].push(score);
+        });
+        // Sort scores within each group by value in descending order
+        Object.keys(separatedScores).forEach(difficulty => {
+            separatedScores[difficulty].sort((a, b) => b.value - a.value);
+        });
+        res.json(separatedScores);
+    });
 });
 
 //New
