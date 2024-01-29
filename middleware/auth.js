@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const verifyToken = (req, res, next) => {
-  const token = req.cookies?.jwta || req.query?.token || req.body._id.accessToken
+const verifyToken = async (req, res, next) => {
+  const user = await User.findById(req.body._id)
+  const token = req.cookies?.jwta || req.query?.token || user.accessToken
   if (!token) {
     return res.status(403).json("Please sign in");
   }
