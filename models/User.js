@@ -4,7 +4,8 @@ const userSchema = mongoose.Schema({
     email: { type: String, unique: true, required: true },
     username: { type: String, unique: true, required: true },
     password: { type: String, required: true },
-    token: { type: String, },
+    accessToken: { type: String, },
+    refreshToken: { type: String, },
     highscores: { 
         hse30: { type: Number, default: 0 }, 
         hsm60: { type: Number, default: 0 }, 

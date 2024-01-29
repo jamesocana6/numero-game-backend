@@ -21,8 +21,7 @@ const auth = require("../middleware/auth.js")
 highscoreRouter.get("/allmodes", (req, res) => {
     Highscore.find({}, (err, highScores) => {
         if (err) {
-            console.error(err);
-            return;
+            res.status(400).json("Something went wrong")
         }
         // Separate high scores by gameDifficulty
         const separatedScores = {};
@@ -30,13 +29,16 @@ highscoreRouter.get("/allmodes", (req, res) => {
             if (!separatedScores[score.gameDifficulty]) {
                 separatedScores[score.gameDifficulty] = [];
             }
-            separatedScores[score.gameDifficulty].push(score);
+            separatedScores[score.gameDifficulty].push({value: score.value, username: score.username});
         });
         // Sort scores within each group by value in descending order
         Object.keys(separatedScores).forEach(difficulty => {
             separatedScores[difficulty].sort((a, b) => b.value - a.value);
+            if (separatedScores[difficulty].length >= 100) {
+                separatedScores[difficulty] = separatedScores[difficulty].slice(0,100);
+            }
         });
-        res.json(separatedScores);
+        res.status(200).json(separatedScores);
     });
 });
 
@@ -58,13 +60,15 @@ highscoreRouter.post("/", auth, async (req, res) => {
         gameDifficulty: gameDifficulty,
         gameTime: gameTime,
     })
-    if (hs) {
+    if (user.highscores[`hs${gameDifficulty + gameTime}`] === 0) {
+        res.status(200).json("High score must be greater than 0!")
+    } else if (hs) {
         if (hs.value < user.highscores[`hs${gameDifficulty + gameTime}`]) {
             hs.value = user.highscores[`hs${gameDifficulty + gameTime}`]
             hs.save()
-            res.json("High score updated!")
+            res.status(201).json("High score updated!")
         } else {
-            res.json("High score already posted!")
+            res.status(200).json("High score already posted!")
         }
     } else {
         Highscore.create({
@@ -74,9 +78,9 @@ highscoreRouter.post("/", auth, async (req, res) => {
             value: user.highscores[`hs${gameDifficulty + gameTime}`],
         }, (err, createdHS) => {
             if (err) {
-                res.json("Something went wrong")
+                res.status(400).json("Something went wrong")
             } else {
-                res.json("High score posted!")
+                res.status(201).json("High score posted!")
             }
         })
     }

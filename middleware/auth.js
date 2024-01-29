@@ -1,15 +1,12 @@
 const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
-  const token =
-    req.body.token || req.query.token || req.headers["x-access-token"];
-
+  const token = req.cookies?.jwta || req.query?.token
   if (!token) {
     return res.status(403).json("Please sign in");
   }
   try {
-    const decoded = jwt.verify(token, process.env.TOKEN_KEY);
-    req.user = decoded;
+    jwt.verify(token, process.env.ACCESS_TOKEN_KEY);
   } catch (err) {
     return res.status(401).json("Invalid Token");
   }

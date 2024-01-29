@@ -8,6 +8,7 @@ const session = require("express-session");
 const userController = require("./controllers/users.js");
 const highscoreController = require("./controllers/highscores.js");
 const sessionController = require("./controllers/sessions.js");
+const cookieParser = require("cookie-parser");
 
 //Connect MongoDB
 mongoose.connect(process.env.DATABASE_URL);
@@ -20,6 +21,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
 }));
+app.use(cookieParser())
 
 app.use("/user", userController)
 app.use("/highscore", highscoreController)
