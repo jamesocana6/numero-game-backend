@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
-  const token = req.cookies?.jwta || req.query?.token
+  const token = req.cookies?.jwta || req.query?.token || req.body._id.accessToken
   if (!token) {
     return res.status(403).json("Please sign in");
   }

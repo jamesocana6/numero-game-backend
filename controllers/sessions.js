@@ -65,8 +65,9 @@ sessionRouter.post("/", (req, res) => {
 });
 
 // REFRESH TOKEN
-sessionRouter.post("/refresh", (req, res) => {
-    const refreshToken = req.cookies?.jwtr;
+sessionRouter.post("/refresh", async (req, res) => {
+    const user = await User.findById(req.body._id)
+    const refreshToken = req.cookies?.jwtr || user.refreshToken;
     // Verify the refresh token
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY, (err, decoded) => {
         if (err) {
