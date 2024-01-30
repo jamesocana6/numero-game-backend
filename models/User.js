@@ -7,8 +7,8 @@ const userSchema = mongoose.Schema({
     accessToken: { type: String, },
     refreshToken: { type: String, },
     highscores: { 
-        hse30: { type: Number, default: 0 }, 
-        hsm60: { type: Number, default: 0 }, 
+        hse60: { type: Number, default: 0 }, 
+        hsm90: { type: Number, default: 0 }, 
         hsh120: { type: Number, default: 0 }, 
     },
     // postedScore: [{type: mongoose.Schema.Types.ObjectId, ref: "Highscore"}],
