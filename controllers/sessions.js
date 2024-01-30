@@ -45,8 +45,8 @@ sessionRouter.post("/", (req, res) => {
                 foundUser.refreshToken = refreshToken;
                 let tempUser = foundUser
                 tempUser.highscores = {
-                    hse30: foundUser.highscores.hse30,
-                    hsm60: foundUser.highscores.hsm60,
+                    hse60: foundUser.highscores.hse60,
+                    hsm90: foundUser.highscores.hsm90,
                     hsh120: foundUser.highscores.hsh120,
                 }
                 foundUser.save()
