@@ -18,9 +18,10 @@ userRouter.get('/logout', (req, res) => {
 //Update
 //Update highscore
 userRouter.put("/", auth, (req, res) => {
+    const gameMode = req.body.mode 
     User.findById(req.body._id, (err, foundUser) => {
         if (foundUser) {
-            foundUser.highscores[req.body.gameSetting] = req.body.value
+            foundUser.highscores[gameMode][req.body.gameSetting] = req.body.value
             foundUser.save(err => {
                 res.status(200).json("High score saved!")
             })

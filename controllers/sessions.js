@@ -43,18 +43,13 @@ sessionRouter.post("/", (req, res) => {
                 // save user token
                 foundUser.accessToken = accessToken;
                 foundUser.refreshToken = refreshToken;
-                let tempUser = foundUser
-                tempUser.highscores = {
-                    hse60: foundUser.highscores.hse60,
-                    hsm90: foundUser.highscores.hsm90,
-                    hsh120: foundUser.highscores.hsh120,
-                }
+                const { highscores, email, username, _id } = foundUser
                 foundUser.save()
                 res.status(200).json({
-                    email: tempUser.email,
-                    username: tempUser.username,
-                    highscores: tempUser.highscores,
-                    _id: tempUser._id,
+                    email,
+                    username,
+                    highscores,
+                    _id,
                 })
             } else {
                 //if the passwords don't match
