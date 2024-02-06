@@ -4,43 +4,76 @@ const Highscore = require("../models/Highscore.js")
 const highscoreRouter = express.Router()
 const auth = require("../middleware/auth.js")
 
-//Index
-//Show top 25 highscores
-// highscoreRouter.post("/", auth, async (req, res) => {
-//     // username: { type: String, required: true, },
-//     // gameDifficulty: { type: String, required: true, },
-//     // gameTarget: { type: Number, required: true, },
-//     // gameTime: { type: Number, required: true, },
-//     // value: { type: Number, required: true, },
-
-//     let scores = await Highscore.find({gameSetting: req.body.gameSetting}).sort({value:-1}).limit(25).exec()
-//     console.log(scores)
-//     res.json(scores)
-// })
+highscoreRouter.post("/userstats", async (req, res) => {
+    const user = await User.findById(req.body._id)
+    const userUsername = user.username
+    Highscore.find({}).sort({gameMode: 1, gameDifficulty: 1, value: -1}).exec((err, highScores) => {
+        if (err) {
+            res.status(400).json("Something went wrong")
+        } else {
+            const separatedScores = { timeTrial: {} }
+            const separatedScoresLengths = {timeTrial: {}}
+            const userStats = {timeTrial: {}}
+            let rank = 1
+            let maxScoreUnder = 0
+            let userScore = 0
+            highScores.forEach(score => {
+                const { gameMode, gameDifficulty, value, username } = score
+                if (!separatedScoresLengths[gameMode][gameDifficulty]) {
+                    rank = 1
+                    userScore = 0
+                    maxScoreUnder = 0
+                    separatedScores[gameMode][gameDifficulty] = []
+                    userStats[gameMode][gameDifficulty] = {}
+                    separatedScoresLengths[gameMode][gameDifficulty] = {}
+                    separatedScoresLengths[gameMode][gameDifficulty]["scores"] = {}
+                    separatedScoresLengths[gameMode][gameDifficulty]["length"] = 0
+                }
+                if (!separatedScoresLengths[gameMode][gameDifficulty]["scores"][value]) {
+                    separatedScoresLengths[gameMode][gameDifficulty]["scores"][value] = {}
+                    separatedScoresLengths[gameMode][gameDifficulty]["scores"][value]["length"] = 0
+                    separatedScoresLengths[gameMode][gameDifficulty]["scores"][value]["rank"] = rank
+                    rank += 1
+                }
+                separatedScores[gameMode][gameDifficulty].push({ value, username, rank: separatedScoresLengths[gameMode][gameDifficulty]["scores"][value]["rank"] })
+                separatedScoresLengths[gameMode][gameDifficulty]["scores"][value]["length"] += 1;
+                separatedScoresLengths[gameMode][gameDifficulty]["length"] += 1;
+                if (username === userUsername) {
+                    userScore = value
+                    userStats[gameMode][gameDifficulty]["rank"] = separatedScoresLengths[gameMode][gameDifficulty]["scores"][value]["rank"]
+                }
+                if (userScore > 0) {
+                    if (userScore !== value) {
+                        maxScoreUnder += 1
+                    }
+                    const percentile = (100*(1-(maxScoreUnder/separatedScoresLengths[gameMode][gameDifficulty]["length"]))).toFixed(2)
+                    userStats[gameMode][gameDifficulty]["percentile"] = percentile
+                } 
+            });
+            res.status(200).json({separatedScores, userStats})
+        }
+    });
+});
 
 highscoreRouter.get("/allmodes", (req, res) => {
-    Highscore.find({}, (err, highScores) => {
+    Highscore.find({}).sort({gameMode: 1, gameDifficulty: 1, value: -1}).exec((err, highScores) => {
         if (err) {
             res.status(400).json("Something went wrong")
         }
-        // Separate high scores by gameMode
         const separatedScores = { timeTrial: {} };
-        // Separate high scores by gameDifficulty
+        let rank = 0
+        let prevValue = 0
         highScores.forEach(score => {
             const { gameMode, gameDifficulty, value, username } = score
             if (!separatedScores[gameMode][gameDifficulty]) {
+                rank = 0
                 separatedScores[gameMode][gameDifficulty] = [];
             }
-            separatedScores[gameMode][gameDifficulty].push({value, username});
-        });
-        // Sort scores within each group by value in descending order
-        Object.keys(separatedScores).forEach(mode => {
-            Object.keys(separatedScores[mode]).forEach(difficulty => {
-                separatedScores[mode][difficulty].sort((a, b) => b.value - a.value);
-                if (separatedScores[mode][difficulty].length >= 100) {
-                    separatedScores[mode][difficulty] = separatedScores[mode][difficulty].slice(0,100);
-                }
-            })
+            if (value !== prevValue) {
+                rank += 1
+            }
+            prevValue = value
+            separatedScores[gameMode][gameDifficulty].push({rank, value, username });
         });
         res.status(200).json(separatedScores);
     });
