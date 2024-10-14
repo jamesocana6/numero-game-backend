@@ -1,4 +1,6 @@
 const express = require("express");
+const { Server } = require('socket.io');
+const { createServer } = require('node:http');
 const app = express();
 require("dotenv").config();
 const PORT = process.env.PORT;
@@ -9,12 +11,30 @@ const userController = require("./controllers/users.js");
 const highscoreController = require("./controllers/highscores.js");
 const sessionController = require("./controllers/sessions.js");
 const cookieParser = require("cookie-parser");
+const server = createServer(app);
+const io = new Server(server, {cors: 
+    {
+        origin: "http://localhost:3000"
+    }
+});
+
+server.listen(3005, (req, res) => {
+    console.log('connected socket on 3005')
+})
+
+// Connect and disconnect Socket.io
+io.on('connection', (socket) => {
+    console.log('a user connected');
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+});
 
 //Connect MongoDB
 mongoose.connect(process.env.DATABASE_URL);
 
 //MIDDLEWARE 
-app.use(cors({ credentials: true, origin: ["https://computiles.com", "http://localhost:3000"] })); //prevent cors errors, open acces to all origins
+app.use(cors({ credentials: true, origin: ["https://computiles.com", "http://localhost:3000"] })); //prevent cors errors, open access to all origins
 app.use(express.json()); //parse json bodies
 app.use(session({
     secret: process.env.SECRET,
