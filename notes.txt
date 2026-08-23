@@ -1,0 +1,110 @@
+- multiplayer
+    - click button to join multiplayer servers
+    - exit to main menu to go exit multiplayer servers
+    - joining room connects socket
+    - leaving the room, closing the page, and clicking back will break the connection and disconnect the player from the socket
+    - afk for 1 minute disconnects socket and closes room
+    - empty room closes room
+- quick play 
+    - 2 players per room
+    - random players
+    - only game mode is normal mode
+- create room
+    - 2 players per room
+    - link or code to join
+    - choose difficulty
+
+- questions
+    - how do the players get the numberTiles? from the server?
+        - numberTiles and target are generated from the server
+        - final math is calculated from the server and point is awarded
+            - if clickedTiles and operation === target then award point
+            - if number of moves from initial state is > 1
+                - if clickedTiles and operation === target then award point
+            - if number of moves from initial state is === 1
+                - if clickedTiles and operation === target then award point
+                - if tiles do not match, then do not award point
+
+- capture board state after ever move
+    - numtiles changes after every move
+        - check that clickedTiles exist on numtiles
+            - if no do not allow move
+            - if yes allow move
+
+Models
+player {
+    socketId: string,              // Crucial for routing events back to this specific user
+    username: string, 
+    userId: string,                // The MongoDB _id of the logged-in user (null if anonymous/guest)
+    ready: boolean, 
+    score: number, 
+    numTiles: Array(number),       // Their current, unique board state
+    undoArray: Array(Array(number)),// History stack for the Undo button
+    selfBuzzerActive: boolean
+}
+game state {
+    roomId: string,                // Matches the URL or join code
+    status: string,                // 'lobby', 'in-progress', 'finished'
+    mode: string,                  // 'time-trial', 'buzzer'
+    timer: number,                 // Server-authoritative countdown clock
+    scoreToWin: number,            // E.g., first to 5 points
+    initialNumTiles: Array(number),// The starting tiles for the current round
+    target: number
+}
+
+
+client events {
+    join room: { roomId: string, username: string }
+    leave room: { roomId: string }
+    quick match: { username: string, mode: string }
+    ready: { roomId: string }
+    submit move: { roomId: string, index1: number, index2: number, operation: string }
+    reset board / undo move: { roomId: string }
+    buzzer click (BUZZER ONLY): { roomId: string }
+}
+
+server events {
+    waiting for opponent: {}
+    join error: { message: string }
+    game start (Sends puzzle #1): { state: gameState, players: Array(player) }
+    board updated: { socketId: string, numTiles: Array(number) }
+    invalid move: { message: string }
+    score updated (Sends puzzle #2, #3, etc.): { scores: Object, newInitialNumTiles: Array, newTarget: number }
+    game over: { winnerId: string, reason: string }
+    opponent disconnected: { socketId: string }
+    timer sync: { timeRemaining: number }
+    buzzer clicked (BUZZER ONLY): { activeSocketId: string }
+}
+
+// MongoDB User Schema
+const userSchema = new mongoose.Schema({
+    username: String,
+    passwordHash: String, // Or OAuth tokens
+    stats: {
+        wins: { type: Number, default: 0 },
+        losses: { type: Number, default: 0 },
+        gamesPlayed: { type: Number, default: 0 }
+    }
+});
+
+UPDATING MONGO FLOW
+Here is what the flow looks like on the server:
+-Player A scores the final point.
+-Server detects the win in the submit move handler.
+-Server checks if the winner has an account: if (winner.userId) { ... }
+-Server updates MongoDB: It uses Mongoose to find the user by userId and increments their wins: $inc: { "stats.wins": 1 }.
+-Server emits game over to the room, ending the match.
+
+Step1. join multiplayer server
+- click online multiplayer, join server and render multiplayer lobby
+- buttons: quick play, create room, join room
+
+Step2. click quickplay
+- if no rooms, say there are no rooms, make room
+- mode is score to 3, same tiles each player
+- wait for player in waiting room
+- player joins, start game? or click ready?
+
+Step3. start game
+- server gets numtiles and target and broadcasts to room
+- game logic
